@@ -2,7 +2,55 @@
 
 const {app,BrowserWindow,ipcMain,Menu} = require('electron')
 const path = require('path')
+const mysql = require('mysql2/promise')
+// Fenêtre principal
 let window
+
+// Configuration de la connexion à la base de données
+const dbConfig =
+    {
+        host:'localhost',
+        port:3306,
+        user:'root',
+        password:'',
+        database: 'db_todos',
+        connectionLimit: 10, // Le nombre maximal de connexion simultanées
+        waitForConnection:true,
+        queueLimit:0
+    }
+// Créer le pool de connexion
+const pool = mysql.createPool(dbConfig)
+
+// Tester la connexion
+async function testConnexion()
+{
+    try {
+       // Demander une connexion au pool
+       const connexion = await pool.getConnection()
+        console.log("Connexion avec la base de donnée établie")
+        connexion.release() // Rend la connexion disponnible
+
+    }catch (error)
+    {
+      console.error('Erreur de connexion à la base de donnée !')
+    }
+}
+testConnexion()
+
+async function getAllTodos()
+{
+    try{
+        const resultat = await pool.query('SELECT * FROM todos ORDER BY created_at DESC')
+
+    }catch(error){
+        console.error('Erreur lors de la récupération des tâches !')
+    }
+}
+
+// Ecouter sur le canal "todos:getAll"
+ipcMain.handle('todos:getAll',()=> {
+    // Récupérer la liste des tâches dans la base de données avec la librairie MySQL
+})
 
 // Créer la fenêtre principale
 function createWindow(){
